@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Inter, Playfair_Display } from 'next/font/google'
 import Script from 'next/script'
 import { FloatingWhatsApp } from '@/components/layout/FloatingWhatsApp'
 import { Footer } from '@/components/layout/Footer'
@@ -8,19 +7,8 @@ import { PageTransition, Providers } from '@/components/Providers'
 import { siteConfig } from '@/lib/data'
 import './globals.css'
 
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-playfair',
-  weight: ['400', '700'],
-  display: 'swap',
-})
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  weight: ['400', '500', '600'],
-  display: 'swap',
-})
+const ogImageUrl =
+  'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&w=1200&h=630&q=85'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://aromabrew.cafe'),
@@ -46,7 +34,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     siteName: 'Aroma Brew Cafe',
-    images: [{ url: '/images/og-image.jpg', width: 1200, height: 630 }],
+    images: [{ url: ogImageUrl, width: 1200, height: 630 }],
   },
   twitter: { card: 'summary_large_image' },
   robots: { index: true, follow: true },
@@ -88,7 +76,7 @@ const localBusinessSchema = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" suppressHydrationWarning>
-      <body className={`${playfair.variable} ${inter.variable} font-body antialiased`}>
+      <body className="font-body antialiased">
         <Providers>
           <a href="#main-content" className="skip-to-content">
             Skip to content

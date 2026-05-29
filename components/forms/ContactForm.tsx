@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { contactSchema, type ContactSchemaInput } from '@/lib/schemas'
+import { getWhatsAppUrl } from '@/lib/utils'
 
 function FieldError({ message }: { message?: string }) {
   return (
@@ -49,11 +50,23 @@ export function ContactForm() {
 
   const onSubmit = async (data: ContactSchemaInput) => {
     setIsSubmitting(true)
-    await new Promise((resolve) => setTimeout(resolve, 650))
-    console.log('Contact form submission', data)
-    toast.success('Message sent! We will get back to you soon.')
-    reset()
-    setIsSubmitting(false)
+    try {
+      const message = [
+        'Hi! I want to contact Aroma Brew Cafe.',
+        `Name: ${data.name}`,
+        `Email: ${data.email}`,
+        `Subject: ${data.subject}`,
+        `Message: ${data.message}`,
+      ].join('\n')
+
+      window.open(getWhatsAppUrl(message), '_blank', 'noopener,noreferrer')
+      toast.success('Message opened in WhatsApp.')
+      reset()
+    } catch {
+      toast.error('Unable to open WhatsApp. Please call us directly.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

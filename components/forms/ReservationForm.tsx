@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { timeSlots } from '@/lib/data'
 import { reservationSchema, type ReservationSchemaInput } from '@/lib/schemas'
+import { getWhatsAppUrl } from '@/lib/utils'
 
 function FieldError({ message }: { message?: string }) {
   return (
@@ -54,20 +55,24 @@ export function ReservationForm() {
   const onSubmit = async (data: ReservationSchemaInput) => {
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/reservation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+      const message = [
+        'Hi! I want to reserve a table at Aroma Brew Cafe.',
+        `Name: ${data.name}`,
+        `Phone: ${data.phone}`,
+        data.email ? `Email: ${data.email}` : null,
+        `Date: ${data.date}`,
+        `Time: ${data.time}`,
+        `Guests: ${data.guests}`,
+        data.specialRequest ? `Special request: ${data.specialRequest}` : null,
+      ]
+        .filter(Boolean)
+        .join('\n')
 
-      if (!response.ok) {
-        throw new Error('Reservation failed')
-      }
-
-      toast.success("🎉 Table reserved! We'll confirm via WhatsApp.")
+      window.open(getWhatsAppUrl(message), '_blank', 'noopener,noreferrer')
+      toast.success('Reservation details opened in WhatsApp.')
       reset()
     } catch {
-      toast.error('Something went wrong. Please call us directly.')
+      toast.error('Unable to open WhatsApp. Please call us directly.')
     } finally {
       setIsSubmitting(false)
     }

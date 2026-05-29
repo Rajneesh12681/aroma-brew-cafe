@@ -18,8 +18,15 @@ const config: Config = {
         cardDark: '#2A1F1D',
       },
       fontFamily: {
-        heading: ['var(--font-playfair)', 'serif'],
-        body: ['var(--font-inter)', 'sans-serif'],
+        heading: ['Georgia', '"Times New Roman"', 'serif'],
+        body: [
+          'ui-sans-serif',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'sans-serif',
+        ],
       },
       boxShadow: {
         warm: '0 4px 24px rgba(75, 46, 43, 0.15)',
