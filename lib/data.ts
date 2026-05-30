@@ -11,12 +11,12 @@ export const siteConfig = {
   instagramUrl:
     process.env.NEXT_PUBLIC_INSTAGRAM_URL ??
     'https://www.instagram.com/aroma_brew_cafe/',
-  mapUrl:
-    'https://maps.google.com/?q=Aroma+Brew+Cafe+Puranpur+UP',
+  mapUrl: 'https://maps.google.com/?q=Aroma+Brew+Cafe+Puranpur+UP',
   mapEmbedUrl:
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_URL ??
     'https://maps.google.com/maps?q=Near+Ashok+Colony+Puranpur+262122&output=embed',
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://aromabrew.cafe',
+  siteUrl:
+    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://aroma-brew-cafe.vercel.app',
 }
 
 export const navLinks = [
