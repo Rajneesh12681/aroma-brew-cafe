@@ -7,6 +7,10 @@ import { useEffect, useRef } from 'react'
 
 gsap.registerPlugin(ScrollTrigger)
 
+const DEBUG_MARKERS = true
+const KETTLE_SPOUT = { x: 548, y: 374 }
+const CUP_CENTER = { x: 600, y: 371 }
+
 const particles = [
   { left: '8%', top: '18%', size: 'h-1 w-1', delay: 0, duration: 7 },
   { left: '18%', top: '72%', size: 'h-1.5 w-1.5', delay: 1.2, duration: 9 },
@@ -64,15 +68,73 @@ export function TeaStoryHero() {
       return
     }
 
+    let effectCleanup: (() => void) | undefined
+
     const context = gsap.context(() => {
+      let pourRaf = 0
+
+      const transformedPoint = (
+        element: SVGGraphicsElement,
+        point: typeof KETTLE_SPOUT,
+      ) => {
+        const matrix = element.getCTM()
+
+        if (!matrix) {
+          return point
+        }
+
+        const svgPoint = scene.createSVGPoint()
+        svgPoint.x = point.x
+        svgPoint.y = point.y
+
+        return svgPoint.matrixTransform(matrix)
+      }
+
+      const updatePourPath = () => {
+        pourRaf = 0
+
+        const start = transformedPoint(kettle, KETTLE_SPOUT)
+        const end = transformedPoint(cup, CUP_CENTER)
+        const drop = Math.max(92, end.y - start.y)
+        const drift = end.x - start.x
+        const controlOne = {
+          x: start.x + drift * 0.22,
+          y: start.y + drop * 0.32,
+        }
+        const controlTwo = {
+          x: end.x - drift * 0.18,
+          y: end.y - drop * 0.24,
+        }
+
+        pour.setAttribute(
+          'd',
+          `M${start.x.toFixed(1)} ${start.y.toFixed(1)}C${controlOne.x.toFixed(1)} ${controlOne.y.toFixed(1)} ${controlTwo.x.toFixed(1)} ${controlTwo.y.toFixed(1)} ${end.x.toFixed(1)} ${end.y.toFixed(1)}`,
+        )
+      }
+
+      const schedulePourPathUpdate = () => {
+        if (pourRaf) {
+          return
+        }
+
+        pourRaf = requestAnimationFrame(updatePourPath)
+      }
+
       gsap.set([kettle, cup], {
         autoAlpha: 1,
         transformOrigin: '50% 50%',
-        svgOrigin: '255 405',
+        force3D: true,
       })
+      gsap.set(kettle, { svgOrigin: '548 374' })
+      gsap.set(cup, { svgOrigin: '600 371' })
       gsap.set(kettle, { x: -64, y: 10, rotate: -9, autoAlpha: 0 })
       gsap.set(cup, { scale: 0.94, y: 16, autoAlpha: 0 })
-      gsap.set(plate, { y: 118, autoAlpha: 0, transformOrigin: '50% 50%' })
+      gsap.set(plate, {
+        y: 118,
+        autoAlpha: 0,
+        transformOrigin: '50% 50%',
+        force3D: true,
+      })
       gsap.set(tea, {
         scaleY: prefersReducedMotion ? 1 : 0,
         autoAlpha: prefersReducedMotion ? 1 : 0,
@@ -83,13 +145,19 @@ export function TeaStoryHero() {
         strokeDashoffset: 190,
         autoAlpha: 0,
       })
-      gsap.set(steam, { autoAlpha: prefersReducedMotion ? 0.82 : 0, y: 8 })
+      gsap.set(steam, {
+        autoAlpha: prefersReducedMotion ? 0.82 : 0,
+        y: 8,
+        transformOrigin: '50% 100%',
+        force3D: true,
+      })
       gsap.set(glow, {
         autoAlpha: 0.55,
         scale: 0.92,
         transformOrigin: '50% 50%',
       })
       gsap.set(menuCue, { autoAlpha: 0, y: 22 })
+      updatePourPath()
 
       if (prefersReducedMotion) {
         gsap.set([kettle, cup, plate, scene, copy], {
@@ -100,78 +168,145 @@ export function TeaStoryHero() {
         gsap.set(plate, { y: 0 })
         gsap.set(cup, { y: 8 })
         gsap.set(menuCue, { autoAlpha: 1, y: 0 })
+        schedulePourPathUpdate()
+        effectCleanup = () => {
+          if (pourRaf) {
+            cancelAnimationFrame(pourRaf)
+          }
+        }
         return
       }
 
-      const timeline = gsap.timeline({
-        defaults: { ease: 'power2.out' },
-        scrollTrigger: {
-          trigger: section,
-          start: 'top top',
-          end: '+=320%',
-          scrub: 0.75,
-          pin: stage,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      })
-
-      timeline
-        .to(kettle, { autoAlpha: 1, x: 0, y: 0, duration: 0.1 }, 0)
-        .to(cup, { autoAlpha: 1, scale: 1, y: 0, duration: 0.1 }, 0.03)
-        .to(glow, { autoAlpha: 0.95, scale: 1.08, duration: 0.28 }, 0)
-        .to(kettle, { rotate: 13, x: 18, y: -8, duration: 0.3 }, 0)
-        .to(copy, { y: -16, autoAlpha: 0.78, duration: 0.16 }, 0.16)
-        .to(
-          pour,
-          {
-            autoAlpha: 0.98,
-            strokeDashoffset: 0,
-            duration: 0.28,
-            ease: 'none',
-          },
-          0.3,
-        )
-        .to(
-          tea,
-          {
-            autoAlpha: 1,
-            scaleY: 1,
-            duration: 0.3,
-            ease: 'none',
-          },
-          0.3,
-        )
-        .to(steam, { autoAlpha: 0.86, y: 0, duration: 0.16 }, 0.44)
-        .to(pour, { autoAlpha: 0, duration: 0.06 }, 0.6)
-        .to(kettle, { rotate: -4, x: -18, y: 8, duration: 0.2 }, 0.6)
-        .to(
-          plate,
-          {
-            autoAlpha: 1,
-            y: 0,
+      const mm = gsap.matchMedia()
+      const createTimeline = (isMobile: boolean) => {
+        const timeline = gsap.timeline({
+          defaults: {
             duration: 0.2,
-            ease: 'power3.out',
+            ease: 'power2.out',
+            overwrite: 'auto',
           },
-          0.6,
-        )
-        .to(
-          cup,
-          {
-            y: 18,
-            duration: 0.16,
-            ease: 'back.out(2.2)',
+          onUpdate: schedulePourPathUpdate,
+          scrollTrigger: {
+            id: isMobile ? 'tea-story-mobile' : 'tea-story-desktop',
+            trigger: section,
+            start: 'top top',
+            end: isMobile ? '+=260%' : '+=320%',
+            scrub: isMobile ? 0.25 : 0.35,
+            pin: stage,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            fastScrollEnd: true,
+            markers: DEBUG_MARKERS,
+            onRefresh: schedulePourPathUpdate,
+            onUpdate: schedulePourPathUpdate,
           },
-          0.66,
-        )
-        .to(glow, { autoAlpha: 0.75, scale: 1.2, duration: 0.18 }, 0.66)
-        .to(scene, { scale: 0.98, y: -4, duration: 0.12 }, 0.8)
-        .to(menuCue, { autoAlpha: 1, y: 0, duration: 0.12 }, 0.8)
-        .to(scene, { scale: 0.92, y: -84, autoAlpha: 0, duration: 0.1 }, 0.92)
-        .to(copy, { y: -58, autoAlpha: 0, duration: 0.1 }, 0.9)
+        })
+
+        const kettlePour = isMobile
+          ? { rotate: 17, x: 34, y: 0 }
+          : { rotate: 13, x: 18, y: -8 }
+        const kettleExit = isMobile
+          ? { rotate: -3, x: -30, y: 6 }
+          : { rotate: -4, x: -18, y: 8 }
+        const cupSettleY = isMobile ? 12 : 18
+        const sceneExitY = isMobile ? -56 : -84
+
+        timeline
+          .to(kettle, { autoAlpha: 1, x: 0, y: 0, duration: 0.1 }, 0)
+          .to(cup, { autoAlpha: 1, scale: 1, y: 0, duration: 0.1 }, 0.03)
+          .to(glow, { autoAlpha: 0.9, scale: 1.05, duration: 0.24 }, 0)
+          .to(kettle, { ...kettlePour, duration: 0.3 }, 0)
+          .to(copy, { y: -16, autoAlpha: 0.78, duration: 0.16 }, 0.16)
+          .to(
+            pour,
+            {
+              autoAlpha: 0.98,
+              strokeDashoffset: 0,
+              duration: 0.28,
+              ease: 'none',
+            },
+            0.3,
+          )
+          .to(
+            tea,
+            {
+              autoAlpha: 1,
+              scaleY: 1,
+              duration: 0.3,
+              ease: 'none',
+            },
+            0.3,
+          )
+          .to(steam, { autoAlpha: 0.82, y: 0, duration: 0.12 }, 0.44)
+          .to(steam, { x: 5, y: -16, scaleY: 1.08, duration: 0.22 }, 0.5)
+          .to(pour, { autoAlpha: 0, duration: 0.06 }, 0.6)
+          .to(kettle, { ...kettleExit, duration: 0.2 }, 0.6)
+          .to(
+            plate,
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.2,
+              ease: 'power3.out',
+            },
+            0.6,
+          )
+          .to(
+            cup,
+            {
+              y: cupSettleY,
+              duration: 0.16,
+              ease: 'back.out(2)',
+            },
+            0.66,
+          )
+          .to(glow, { autoAlpha: 0.7, scale: 1.14, duration: 0.18 }, 0.66)
+          .to(
+            scene,
+            { scale: isMobile ? 0.96 : 0.98, y: -4, duration: 0.12 },
+            0.8,
+          )
+          .to(menuCue, { autoAlpha: 1, y: 0, duration: 0.12 }, 0.8)
+          .to(
+            scene,
+            {
+              scale: isMobile ? 0.94 : 0.92,
+              y: sceneExitY,
+              autoAlpha: 0,
+              duration: 0.1,
+            },
+            0.92,
+          )
+          .to(copy, { y: -58, autoAlpha: 0, duration: 0.1 }, 0.9)
+
+        return timeline
+      }
+
+      mm.add('(min-width: 768px)', () => createTimeline(false))
+      mm.add('(max-width: 767px)', () => createTimeline(true))
+
+      const resizeObserver = new ResizeObserver(schedulePourPathUpdate)
+      resizeObserver.observe(scene)
+      resizeObserver.observe(stage)
+
+      ScrollTrigger.addEventListener('refreshInit', schedulePourPathUpdate)
+      ScrollTrigger.refresh()
+
+      effectCleanup = () => {
+        if (pourRaf) {
+          cancelAnimationFrame(pourRaf)
+        }
+
+        ScrollTrigger.removeEventListener('refreshInit', schedulePourPathUpdate)
+        resizeObserver.disconnect()
+        mm.revert()
+      }
     }, section)
 
-    return () => context.revert()
+    return () => {
+      effectCleanup?.()
+      context.revert()
+    }
   }, [prefersReducedMotion])
 
   return (
@@ -229,13 +364,14 @@ export function TeaStoryHero() {
           </motion.div>
 
           <div className="relative w-full">
-            <div className="absolute left-1/2 top-1/2 h-[38rem] w-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-caramel/10 blur-3xl" />
+            <div className="absolute left-1/2 top-1/2 h-[36rem] w-[36rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(217,179,130,0.16)_0%,rgba(217,179,130,0.07)_42%,transparent_70%)]" />
             <svg
               ref={sceneRef}
               viewBox="0 0 1200 760"
+              preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-labelledby="tea-story-title"
-              className="relative mx-auto h-[58vh] min-h-[390px] w-full max-w-6xl overflow-visible will-change-transform sm:h-[62vh]"
+              className="relative mx-auto h-[52vh] min-h-[300px] w-full max-w-6xl overflow-visible will-change-transform sm:h-[58vh] sm:min-h-[390px] lg:h-[62vh]"
             >
               <title id="tea-story-title">
                 Brass kettle pouring tea into a ceramic cup
@@ -271,30 +407,6 @@ export function TeaStoryHero() {
                   <stop offset="0%" stopColor="#e6a84c" />
                   <stop offset="100%" stopColor="#5f2b12" />
                 </linearGradient>
-                <filter
-                  id="softShadow"
-                  x="-40%"
-                  y="-40%"
-                  width="180%"
-                  height="180%"
-                >
-                  <feDropShadow
-                    dx="0"
-                    dy="24"
-                    floodColor="#000000"
-                    floodOpacity="0.42"
-                    stdDeviation="18"
-                  />
-                </filter>
-                <filter
-                  id="steamBlur"
-                  x="-80%"
-                  y="-80%"
-                  width="260%"
-                  height="260%"
-                >
-                  <feGaussianBlur stdDeviation="2.5" />
-                </filter>
                 <clipPath id="cupBowlClip">
                   <path d="M533 374c4 77 31 122 67 122s63-45 67-122z" />
                 </clipPath>
@@ -308,14 +420,9 @@ export function TeaStoryHero() {
                 ry="54"
                 fill="#d9b382"
                 opacity="0.45"
-                filter="url(#steamBlur)"
               />
 
-              <g
-                ref={plateRef}
-                filter="url(#softShadow)"
-                className="will-change-transform"
-              >
+              <g ref={plateRef} className="will-change-transform">
                 <ellipse
                   cx="600"
                   cy="596"
@@ -349,11 +456,7 @@ export function TeaStoryHero() {
                 />
               </g>
 
-              <g
-                ref={kettleRef}
-                filter="url(#softShadow)"
-                className="will-change-transform"
-              >
+              <g ref={kettleRef} className="will-change-transform">
                 <path
                   d="M185 336c-14-62 29-121 105-127 77-5 133 40 132 105-2 75-55 128-124 129-61 1-100-37-113-107z"
                   fill="url(#brass)"
@@ -402,14 +505,9 @@ export function TeaStoryHero() {
                 stroke="url(#tea)"
                 strokeLinecap="round"
                 strokeWidth="18"
-                filter="url(#steamBlur)"
               />
 
-              <g
-                ref={cupRef}
-                filter="url(#softShadow)"
-                className="will-change-transform"
-              >
+              <g ref={cupRef} className="will-change-transform">
                 <ellipse cx="600" cy="376" rx="88" ry="26" fill="#fff7ea" />
                 <path
                   d="M514 376c5 93 39 145 86 145s81-52 86-145z"
@@ -462,12 +560,7 @@ export function TeaStoryHero() {
                 />
               </g>
 
-              <g
-                ref={steamRef}
-                className="motion-safe:animate-steam2"
-                filter="url(#steamBlur)"
-                opacity="0"
-              >
+              <g ref={steamRef} opacity="0">
                 <path
                   d="M566 338c-26-32 24-48 0-82"
                   fill="none"
@@ -500,7 +593,7 @@ export function TeaStoryHero() {
             ref={menuCueRef}
             className="pointer-events-none absolute bottom-8 left-1/2 z-20 w-full max-w-sm -translate-x-1/2 px-4 text-center"
           >
-            <p className="rounded-full border border-caramel/25 bg-black/20 px-5 py-2 text-xs font-semibold uppercase tracking-[0.32em] text-caramel/90 shadow-[0_18px_70px_rgba(0,0,0,0.35)] backdrop-blur">
+            <p className="rounded-full border border-caramel/25 bg-black/35 px-5 py-2 text-xs font-semibold uppercase tracking-[0.32em] text-caramel/90 shadow-[0_18px_70px_rgba(0,0,0,0.35)]">
               Enter the Menu
             </p>
           </div>
