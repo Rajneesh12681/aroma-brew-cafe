@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const DEBUG_MARKERS = true
+const DEBUG_MARKERS = false
 const KETTLE_SPOUT = { x: 548, y: 374 }
 const CUP_CENTER = { x: 600, y: 371 }
 
