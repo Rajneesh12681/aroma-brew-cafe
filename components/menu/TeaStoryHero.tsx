@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useEffect, useRef } from 'react'
+import { CoffeeSceneBackground } from '@/components/menu/CoffeeSceneBackground'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -320,6 +321,8 @@ export function TeaStoryHero() {
         className="relative flex min-h-screen items-center overflow-hidden px-4 pt-20 sm:px-6 lg:px-8"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(217,179,130,0.24),transparent_32%),radial-gradient(circle_at_18%_22%,rgba(255,245,214,0.12),transparent_26%),linear-gradient(140deg,#100a07_0%,#21130d_44%,#090706_100%)]" />
+        <CoffeeSceneBackground reducedMotion={Boolean(prefersReducedMotion)} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(18,13,10,0.32)_52%,rgba(9,7,6,0.82)_100%)]" />
         <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-black/70 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-[#0b0705] to-transparent" />
 
