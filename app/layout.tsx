@@ -11,7 +11,7 @@ const ogImageUrl =
   'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&w=1200&h=630&q=85'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://aromabrew.cafe'),
+  metadataBase: new URL(siteConfig.siteUrl),
   title: {
     default: 'Aroma Brew Cafe | Best Coffee Shop in Puranpur UP',
     template: '%s | Aroma Brew Cafe',
@@ -53,7 +53,7 @@ const localBusinessSchema = {
     addressCountry: 'IN',
   },
   telephone: siteConfig.phone,
-  url: 'https://aromabrew.cafe',
+  url: siteConfig.siteUrl,
   servesCuisine: 'Coffee, Café, Continental',
   priceRange: '₹79 - ₹159',
   openingHoursSpecification: [
@@ -73,7 +73,11 @@ const localBusinessSchema = {
   sameAs: ['https://www.instagram.com/aroma_brew_cafe/'],
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en-IN" suppressHydrationWarning>
       <body className="font-body antialiased">

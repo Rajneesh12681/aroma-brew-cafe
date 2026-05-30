@@ -30,7 +30,7 @@ export function MenuPageClient() {
   )
 
   return (
-    <section className="bg-warmwhite py-16 dark:bg-matte">
+    <section id="menu-section" className="bg-warmwhite py-16 dark:bg-matte">
       <div className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 md:pb-0 lg:px-8">
         <div className="flex justify-center">
           <FilterTabs options={options} active={active} onChange={setActive} />

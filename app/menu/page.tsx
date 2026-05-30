@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { MenuPageClient } from '@/components/menu/MenuPageClient'
-import { PageHero } from '@/components/ui/PageHero'
+import { TeaStoryHero } from '@/components/menu/TeaStoryHero'
 
 export const metadata: Metadata = {
   title: 'Menu | Aroma Brew Cafe — Best Coffee in Puranpur',
@@ -11,10 +11,7 @@ export const metadata: Metadata = {
 export default function MenuPage() {
   return (
     <>
-      <PageHero
-        title="Our Menu"
-        subtitle="Premium coffee, chilled drinks and cafe favorites starting at ₹79."
-      />
+      <TeaStoryHero />
       <MenuPageClient />
     </>
   )
